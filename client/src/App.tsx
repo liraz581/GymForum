@@ -1,13 +1,16 @@
-import React, {JSX} from 'react';
+import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
 import './App.css';
+import Header from './components/Header';
 
-function App(): JSX.Element {
-  return (
-      <div className="App">
-        <header className="App-header">
-        </header>
-      </div>
-  );
+function App() {
+    return (
+        <BrowserRouter>
+            <div className="App">
+                <Header />
+            </div>
+        </BrowserRouter>
+    );
 }
 
 export default App;
