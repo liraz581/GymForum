@@ -4,6 +4,7 @@ import './App.css';
 import Header from './components/header/Header';
 import Forum from "./components/forum/Forum";
 import {ForumType} from "./types/Types";
+import UserProfile from "./components/user/UserProfile";
 
 function App() {
     return (
@@ -13,7 +14,7 @@ function App() {
                 <main>
                     <Routes>
                         <Route path="/explore" element={<Forum type={ForumType.ALL_POSTS} />} />
-                        <Route path="/my-posts" element={<Forum type={ForumType.MY_POSTS} />} />
+                        <Route path="/profile" element={<UserProfile />} />
                     </Routes>
                 </main>
             </div>

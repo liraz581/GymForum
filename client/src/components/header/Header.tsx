@@ -9,7 +9,6 @@ export default function Header() {
     const location = useLocation();
     const routes: Route[] = [
         { path: '/explore', label: 'Explore' },
-        { path: '/my-posts', label: 'Your Posts' },
         { path: '/profile', label: 'Profile' },
         { path: '/home', label: 'Logout' }
     ];
