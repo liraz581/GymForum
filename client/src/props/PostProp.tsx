@@ -1,4 +1,5 @@
 class PostProp {
+    id: string;
     username: string;
     title: string;
     imageUrl: string;
@@ -8,6 +9,7 @@ class PostProp {
     commentCount: number;
 
     constructor(
+        id: string,
         username: string,
         title: string,
         imageUrl: string,
@@ -16,6 +18,7 @@ class PostProp {
         likeCount: number,
         commentCount: number,
     ) {
+        this.id = id
         this.username = username;
         this.title = title;
         this.imageUrl = imageUrl;
