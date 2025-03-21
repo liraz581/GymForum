@@ -8,8 +8,8 @@ interface Route {
 export default function Header() {
     const location = useLocation();
     const routes: Route[] = [
-        { path: '/forum', label: 'Forum' },
-        { path: '/posts', label: 'Your Posts' },
+        { path: '/explore', label: 'Explore' },
+        { path: '/my-posts', label: 'Your Posts' },
         { path: '/profile', label: 'Profile' },
         { path: '/home', label: 'Logout' }
     ];
