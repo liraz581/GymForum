@@ -6,6 +6,7 @@ class PostProp {
     description: string;
     createdAt: number;
     likeCount?: number;
+    isLikedByCurrentUser?: boolean;
     commentCount?: number;
 
     constructor(
@@ -16,6 +17,7 @@ class PostProp {
         description: string,
         createdAt: number,
         likeCount?: number,
+        isLikedByCurrentUser?: boolean,
         commentCount?: number,
     ) {
         this._id = id
@@ -25,6 +27,7 @@ class PostProp {
         this.description = description;
         this.createdAt = createdAt;
         this.likeCount = likeCount;
+        this.isLikedByCurrentUser = isLikedByCurrentUser;
         this.commentCount = commentCount;
     }
 }

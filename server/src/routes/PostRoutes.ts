@@ -1,5 +1,6 @@
 import { Router, RequestHandler } from 'express';
 import { authenticateToken } from '../middleware/AuthMiddleware';
+import {PostsDAL} from "../DAL/PostsDAL";
 import Post from '../models/Post';
 
 const router = Router();
@@ -29,7 +30,7 @@ const createPost: RequestHandler = async (req, res) => {
 
 const getPosts: RequestHandler = async (req, res) => {
     try {
-        const posts = await Post.find().sort({ createdAt: -1 }).populate('userId', 'username');
+        const posts = await PostsDAL.getPostsWithLikes(req.user.id);
         res.json(posts);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching posts' });
@@ -38,9 +39,7 @@ const getPosts: RequestHandler = async (req, res) => {
 
 const getPostById: RequestHandler = async (req, res) => {
     try {
-        console.log(req.params);
         const post = await Post.findById(req.params.id).populate('userId', 'username');
-        if (post) console.log(post);
         if (!post) {
             res.status(404).json({ message: 'Post not found' });
             return;
@@ -92,7 +91,7 @@ const deletePost: RequestHandler = async (req, res) => {
 };
 
 router.post('/', authenticateToken, createPost);
-router.get('/', getPosts);
+router.get('/', authenticateToken, getPosts);
 router.get('/:id', getPostById);
 router.put('/:id', authenticateToken, updatePost);
 router.delete('/:id', authenticateToken, deletePost);

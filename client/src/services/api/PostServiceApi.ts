@@ -28,7 +28,8 @@ export class PostApiService {
             post.title,
             post.imageUrls || '',
             post.description,
-            new Date().getTime()
+            new Date().getTime(),
+            0
         );
     }
 
@@ -47,13 +48,16 @@ export class PostApiService {
         }
 
         const posts = await response.json();
+        console.log(posts);
         return posts.map((post: PostProp) => new PostProp(
             post._id,
             post.userId.username,
             post.title,
             post.imageUrl || '',
             post.description,
-            post.createdAt
+            post.createdAt,
+            post.likeCount,
+            post.isLikedByCurrentUser
         ));
     }
 
@@ -89,7 +93,8 @@ export class PostApiService {
             post.title,
             post.imageUrl || '',
             post.description,
-            post.createdAt || new Date().getTime()
+            post.createdAt || new Date().getTime(),
+            post.likeCount
         );
     }
 

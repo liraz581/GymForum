@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 
 interface PostProps {
     username: string;
@@ -7,8 +7,12 @@ interface PostProps {
     description: string;
     timestamp: number;
     currentUsername: string;
+    likeCount: number;
+    isLikedByCurrentUser: boolean;
     onEdit?: () => void;
     onDelete?: () => void;
+    onLike?: () => Promise<void>;
+    onUnlike?: () => Promise<void>;
 }
 
 const Post: React.FC<PostProps> = ({
@@ -18,9 +22,40 @@ const Post: React.FC<PostProps> = ({
                                        description,
                                        timestamp,
                                        currentUsername,
+                                       likeCount,
+                                       isLikedByCurrentUser,
                                        onEdit,
-                                       onDelete
+                                       onDelete,
+                                       onLike,
+                                       onUnlike,
                                    }) => {
+    const [isLiked, setIsLiked] = useState(isLikedByCurrentUser);
+    const [localLikeCount, setLocalLikeCount] = useState(likeCount);
+
+    const handleLike = async () => {
+        setIsLiked(true);
+        setLocalLikeCount(prev => prev + 1);
+        try {
+            if (onLike) await onLike();
+        } catch (error) {
+            setIsLiked(false);
+            setLocalLikeCount(prev => prev - 1);
+            console.error('Failed to like post:', error);
+        }
+    };
+
+    const handleUnlike = async () => {
+        setIsLiked(false);
+        setLocalLikeCount(prev => prev - 1);
+        try {
+            if (onUnlike) await onUnlike();
+        } catch (error) {
+            setIsLiked(true);
+            setLocalLikeCount(prev => prev + 1);
+            console.error('Failed to unlike post:', error);
+        }
+    };
+
     return (
         <div className="max-w-md mx-auto bg-white shadow-md rounded-lg overflow-hidden mb-6">
 
@@ -58,10 +93,11 @@ const Post: React.FC<PostProps> = ({
 
             <div className="p-4 flex items-center gap-6 border-t border-gray-200">
                 <button
-                    className={`flex items-center gap-1 ${'text-gray-600'} hover:text-red-500`}
+                    onClick={isLiked ? handleUnlike : handleLike}
+                    className={`flex items-center gap-1 ${isLiked ? 'text-red-500' : 'text-gray-600'} hover:text-red-500`}
                 >
                     <span className="text-lg">♥</span>
-                    <span>{7}</span>
+                    <span>{localLikeCount}</span>
                 </button>
                 <button className="flex items-center gap-1 text-gray-600 hover:text-gray-800">
                     <span className="text-lg">💬</span>

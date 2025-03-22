@@ -5,6 +5,7 @@ import cors from 'cors';
 import authRoutes from './routes/Auth';
 import userRoutes from './routes/UserRoutes';
 import postRoutes from './routes/PostRoutes';
+import likeRoutes from "./routes/LikeRoutes";
 
 import { authenticateToken } from './middleware/AuthMiddleware';
 
@@ -32,6 +33,7 @@ mongoose.connect(MONGO_URI)
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
 app.use('/posts', postRoutes);
+app.use('/likes', likeRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

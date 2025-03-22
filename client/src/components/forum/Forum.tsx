@@ -6,9 +6,14 @@ import PostProp from "../../props/PostProp";
 import {ForumType} from "../../types/Types";
 import {UserApiService} from "../../services/api/UserApiService";
 import {PostApiService} from "../../services/api/PostServiceApi";
+import {LikeServiceApi} from "../../services/api/LikeServiceApi";
 
 interface ForumProps {
     type: ForumType;
+}
+
+interface LikeState {
+    [postId: string]: { isLiked: boolean; count: number };
 }
 
 const Forum = ({ type }: ForumProps) => {
@@ -18,6 +23,7 @@ const Forum = ({ type }: ForumProps) => {
     const [posts, setPosts] = useState<PostProp[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [likes, setLikes] = useState<LikeState>({});
 
     useEffect(() => {
         const fetchData = async () => {
@@ -28,6 +34,15 @@ const Forum = ({ type }: ForumProps) => {
 
                 const postsData = await PostApiService.getPosts();
                 setPosts(postsData);
+
+                const initialLikes: LikeState = {};
+                postsData.forEach(post => {
+                    initialLikes[post._id] = {
+                        isLiked: post.isLikedByCurrentUser || false,
+                        count: post.likeCount || 0
+                    };
+                });
+                setLikes(initialLikes);
             } catch (err) {
                 console.error('Failed to fetch data:', err);
                 setError('Failed to load data. Please try again later.');
@@ -73,6 +88,8 @@ const Forum = ({ type }: ForumProps) => {
                     description: data.description,
                     imageUrl: data.imageUrl,
                     createdAt: new Date().getTime(),
+                    likeCount: 0,
+                    isLikedByCurrentUser: false
                 };
 
                 setPosts(prevPosts => [tempPost, ...prevPosts]);
@@ -87,6 +104,7 @@ const Forum = ({ type }: ForumProps) => {
                     description: createdPostRaw.description,
                     imageUrl: '', // TODO: Replace with new URL
                     createdAt: createdPostRaw.createdAt || new Date().getTime(),
+                    likeCount: 0
                 };
 
                 setPosts(prevPosts =>
@@ -94,6 +112,11 @@ const Forum = ({ type }: ForumProps) => {
                         post._id === tempId ? createdPost : post
                     )
                 );
+                setLikes(prevLikes => {
+                    const newLikes = { ...prevLikes, [createdPost._id]: { isLiked: false, count: 0 } };
+                    delete newLikes[tempId];
+                    return newLikes;
+                });
             }
         } catch (error) {
             console.error('Failed to create post:', error);
@@ -107,6 +130,56 @@ const Forum = ({ type }: ForumProps) => {
             await PostApiService.deletePost(postId);
         } catch (error) {
             console.error('Failed to delete post:', error);
+        }
+    };
+
+    const handleLike = async (postId: string) => {
+        try {
+            // Optimistic update
+            setLikes(prevLikes => ({
+                ...prevLikes,
+                [postId]: {
+                    isLiked: true,
+                    count: prevLikes[postId].count + 1
+                }
+            }));
+
+            await LikeServiceApi.likePost(postId);
+        } catch (error) {
+            console.error('Failed to like post:', error);
+            setLikes(prevLikes => ({
+                ...prevLikes,
+                [postId]: {
+                    isLiked: false,
+                    count: prevLikes[postId].count - 1
+                }
+            }));
+            setError('Failed to like post. Please try again.');
+        }
+    };
+
+    const handleUnlike = async (postId: string) => {
+        try {
+            // Optimistic update
+            setLikes(prevLikes => ({
+                ...prevLikes,
+                [postId]: {
+                    isLiked: false,
+                    count: prevLikes[postId].count - 1
+                }
+            }));
+
+            await LikeServiceApi.unlikePost(postId);
+        } catch (error) {
+            console.error('Failed to unlike post:', error);
+            setLikes(prevLikes => ({
+                ...prevLikes,
+                [postId]: {
+                    isLiked: true,
+                    count: prevLikes[postId].count + 1
+                }
+            }));
+            setError('Failed to unlike post. Please try again.');
         }
     };
 
@@ -156,8 +229,12 @@ const Forum = ({ type }: ForumProps) => {
                             description={post.description}
                             currentUsername={currentUsername}
                             timestamp={post.createdAt}
+                            likeCount={post.likeCount || 0}
+                            isLikedByCurrentUser={post.isLikedByCurrentUser || false}
                             onEdit={() => handleEdit(post)}
                             onDelete={() => handleDelete(post._id)}
+                            onLike={() => handleLike(post._id)}
+                            onUnlike={() => handleUnlike(post._id)}
                         />
                     ))}
                 </div>
