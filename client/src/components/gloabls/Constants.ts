@@ -4,3 +4,5 @@ export const ROUTES = {
     EXPLORE: '/explore',
     PROFILE: '/profile'
 } as const;
+
+export const SERVER_URL: string = 'http://localhost:5000';

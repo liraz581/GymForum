@@ -1,9 +1,10 @@
 import UserProp from "../../props/UserProp";
+import {SERVER_URL} from "../../components/gloabls/Constants";
 
 export const UserApiService = {
     async getCurrentUser(): Promise<UserProp> {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/auth/me', {
+        const response = await fetch(`${SERVER_URL}/auth/me`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -25,7 +26,7 @@ export const UserApiService = {
 
     async updateUsername(username: string): Promise<UserProp> {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/user', {
+        const response = await fetch(`${SERVER_URL}/user`, {
             method: 'PATCH',
             headers: {
                 'Authorization': `Bearer ${token}`,
