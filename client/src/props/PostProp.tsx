@@ -4,7 +4,7 @@ class PostProp {
     title: string;
     imageUrl: string;
     description: string;
-    createdAt: string;
+    createdAt: number;
     likeCount: number;
     commentCount: number;
 
@@ -14,7 +14,7 @@ class PostProp {
         title: string,
         imageUrl: string,
         description: string,
-        createdAt: string,
+        createdAt: number,
         likeCount: number,
         commentCount: number,
     ) {
