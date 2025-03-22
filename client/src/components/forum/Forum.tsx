@@ -3,45 +3,184 @@ import Post from './Post';
 import PostForm from "./PostForm";
 
 import PostProp from "../../props/PostProp";
-import Mock from "../../props/Mock";
 import {ForumType} from "../../types/Types";
 import {UserApiService} from "../../services/api/UserApiService";
+import {PostApiService} from "../../services/api/PostServiceApi";
+import {LikeServiceApi} from "../../services/api/LikeServiceApi";
 
 interface ForumProps {
     type: ForumType;
+}
+
+interface LikeState {
+    [postId: string]: { isLiked: boolean; count: number };
 }
 
 const Forum = ({ type }: ForumProps) => {
     const [showPostForm, setShowPostForm] = useState(false);
     const [editingPost, setEditingPost] = useState<PostProp | undefined>(undefined);
     const [currentUsername, setCurrentUsername] = useState<string>('');
+    const [posts, setPosts] = useState<PostProp[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [likes, setLikes] = useState<LikeState>({});
 
     useEffect(() => {
-        const fetchUsername = async () => {
+        const fetchData = async () => {
+            setIsLoading(true);
             try {
                 const userData = await UserApiService.getCurrentUser();
                 setCurrentUsername(userData.username);
+
+                const postsData = await PostApiService.getPosts();
+                setPosts(postsData);
+
+                const initialLikes: LikeState = {};
+                postsData.forEach(post => {
+                    initialLikes[post._id] = {
+                        isLiked: post.isLikedByCurrentUser || false,
+                        count: post.likeCount || 0
+                    };
+                });
+                setLikes(initialLikes);
             } catch (err) {
-                console.error('Failed to fetch user data');
+                console.error('Failed to fetch data:', err);
+                setError('Failed to load data. Please try again later.');
+            } finally {
+                setIsLoading(false);
             }
         };
-        fetchUsername();
+
+        fetchData();
     }, []);
 
-    const mockPosts: PostProp[] = Mock.mockPosts;
-    const posts = type === ForumType.MY_POSTS
-        ? mockPosts.filter(post => post.username === currentUsername)
-        : mockPosts.filter(post => post.username !== currentUsername);
+    const filteredPosts = type === ForumType.MY_POSTS
+        ? posts.filter(post => post.userId.username === currentUsername)
+        : posts.filter(post => post.userId.username !== currentUsername);
     // TODO: replace with username, and make query to differentiate
 
     const handleSubmit = async (data: { title: string; description: string; imageUrl: string }) => {
-        if (editingPost) {
-            console.log('Updating post:', data);
-        } else {
-            console.log('Creating post:', data);
+        try {
+            if (editingPost) {
+                // This uses optimistic approach (e.g. Instagram)
+                setPosts(prevPosts =>
+                    prevPosts.map(post =>
+                        post._id === editingPost._id
+                            ? { ...post, title: data.title, description: data.description, imageUrl: data.imageUrl }
+                            : post
+                    )
+                );
+
+                setShowPostForm(false);
+                setEditingPost(undefined);
+
+                await PostApiService.updatePost(editingPost._id, {
+                    title: data.title,
+                    description: data.description,
+                    imageUrl: data.imageUrl
+                });
+            } else {
+                const tempId = Date.now().toString(); // note: not real ID!
+                const tempPost: PostProp = {
+                    _id: tempId,
+                    userId: { username: currentUsername },
+                    title: data.title,
+                    description: data.description,
+                    imageUrl: data.imageUrl,
+                    createdAt: new Date().getTime(),
+                    likeCount: 0,
+                    isLikedByCurrentUser: false
+                };
+
+                setPosts(prevPosts => [tempPost, ...prevPosts]);
+                setShowPostForm(false);
+
+                const createdPostRaw = await PostApiService.createPost(data);
+
+                const createdPost: PostProp = {
+                    _id: createdPostRaw._id,
+                    userId: createdPostRaw.userId,
+                    title: createdPostRaw.title,
+                    description: createdPostRaw.description,
+                    imageUrl: '', // TODO: Replace with new URL
+                    createdAt: createdPostRaw.createdAt || new Date().getTime(),
+                    likeCount: 0
+                };
+
+                setPosts(prevPosts =>
+                    prevPosts.map(post =>
+                        post._id === tempId ? createdPost : post
+                    )
+                );
+                setLikes(prevLikes => {
+                    const newLikes = { ...prevLikes, [createdPost._id]: { isLiked: false, count: 0 } };
+                    delete newLikes[tempId];
+                    return newLikes;
+                });
+            }
+        } catch (error) {
+            console.error('Failed to create post:', error);
         }
-        setShowPostForm(false);
-        setEditingPost(undefined);
+    };
+
+    const handleDelete = async (postId: string) => {
+        try {
+            // Optimistic approach
+            setPosts(posts.filter(post => post._id !== postId));
+            await PostApiService.deletePost(postId);
+        } catch (error) {
+            console.error('Failed to delete post:', error);
+        }
+    };
+
+    const handleLike = async (postId: string) => {
+        try {
+            // Optimistic update
+            setLikes(prevLikes => ({
+                ...prevLikes,
+                [postId]: {
+                    isLiked: true,
+                    count: prevLikes[postId].count + 1
+                }
+            }));
+
+            await LikeServiceApi.likePost(postId);
+        } catch (error) {
+            console.error('Failed to like post:', error);
+            setLikes(prevLikes => ({
+                ...prevLikes,
+                [postId]: {
+                    isLiked: false,
+                    count: prevLikes[postId].count - 1
+                }
+            }));
+            setError('Failed to like post. Please try again.');
+        }
+    };
+
+    const handleUnlike = async (postId: string) => {
+        try {
+            // Optimistic update
+            setLikes(prevLikes => ({
+                ...prevLikes,
+                [postId]: {
+                    isLiked: false,
+                    count: prevLikes[postId].count - 1
+                }
+            }));
+
+            await LikeServiceApi.unlikePost(postId);
+        } catch (error) {
+            console.error('Failed to unlike post:', error);
+            setLikes(prevLikes => ({
+                ...prevLikes,
+                [postId]: {
+                    isLiked: true,
+                    count: prevLikes[postId].count + 1
+                }
+            }));
+            setError('Failed to unlike post. Please try again.');
+        }
     };
 
     const handleEdit = (post: PostProp) => {
@@ -81,15 +220,23 @@ const Forum = ({ type }: ForumProps) => {
                     {type === ForumType.ALL_POSTS ? 'Explore Posts' : 'Your Posts'}
                 </h2>
                 <div className="space-y-6">
-                    {posts.map((post) => (
+                    {filteredPosts.map((post: PostProp) => (
                         <Post
-                            key={post.id}
-                            username={post.username}
+                            key={post._id}
+                            username={post.userId.username}
                             title={post.title}
                             imageUrl={post.imageUrl}
                             description={post.description}
+                            currentUsername={currentUsername}
+                            postId={post._id}
                             timestamp={post.createdAt}
+                            likeCount={post.likeCount || 0}
+                            isLikedByCurrentUser={post.isLikedByCurrentUser || false}
+                            commentCount={post.commentCount || 0}
                             onEdit={() => handleEdit(post)}
+                            onDelete={() => handleDelete(post._id)}
+                            onLike={() => handleLike(post._id)}
+                            onUnlike={() => handleUnlike(post._id)}
                         />
                     ))}
                 </div>

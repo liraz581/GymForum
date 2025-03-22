@@ -1,11 +1,12 @@
 import UserProp from '../props/UserProp';
 import Mock from '../props/Mock';
 import {v4 as uuidv4} from "uuid";
+import {SERVER_URL} from "../components/gloabls/Constants";
 
 export const authService = {
     async login(email: string, password: string): Promise<UserProp> {
         try {
-            const response = await fetch('http://localhost:5000/auth/login', {
+            const response = await fetch(`${SERVER_URL}/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -25,7 +26,7 @@ export const authService = {
             const { token } = await response.json();
             localStorage.setItem('token', token);
 
-            const userResponse = await fetch('http://localhost:5000/auth/me', {
+            const userResponse = await fetch(`${SERVER_URL}/auth/me`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -50,7 +51,7 @@ export const authService = {
 
     async register(username: string, email: string, password: string): Promise<UserProp> {
         try {
-            const response = await fetch('http://localhost:5000/auth/register', {
+            const response = await fetch(`${SERVER_URL}/auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

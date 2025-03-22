@@ -1,8 +1,13 @@
 import express, { Express, Request, Response } from 'express';
-import cors from 'cors';
 import mongoose from 'mongoose';
+import cors from 'cors';
+
 import authRoutes from './routes/Auth';
 import userRoutes from './routes/UserRoutes';
+import postRoutes from './routes/PostRoutes';
+import likeRoutes from "./routes/LikeRoutes";
+import commentsRoutes from "./routes/CommentsRoutes";
+
 import { authenticateToken } from './middleware/AuthMiddleware';
 
 const app: Express = express();
@@ -28,6 +33,9 @@ mongoose.connect(MONGO_URI)
 
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
+app.use('/posts', postRoutes);
+app.use('/likes', likeRoutes);
+app.use('/api', commentsRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

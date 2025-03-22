@@ -1,12 +1,13 @@
 class PostProp {
-    id: string;
-    username: string;
+    _id: string;
+    userId: { username: string }; // for DB
     title: string;
     imageUrl: string;
     description: string;
     createdAt: number;
-    likeCount: number;
-    commentCount: number;
+    likeCount?: number;
+    isLikedByCurrentUser?: boolean;
+    commentCount?: number;
 
     constructor(
         id: string,
@@ -15,16 +16,18 @@ class PostProp {
         imageUrl: string,
         description: string,
         createdAt: number,
-        likeCount: number,
-        commentCount: number,
+        likeCount?: number,
+        isLikedByCurrentUser?: boolean,
+        commentCount?: number,
     ) {
-        this.id = id
-        this.username = username;
+        this._id = id
+        this.userId = {username}
         this.title = title;
         this.imageUrl = imageUrl;
         this.description = description;
         this.createdAt = createdAt;
         this.likeCount = likeCount;
+        this.isLikedByCurrentUser = isLikedByCurrentUser;
         this.commentCount = commentCount;
     }
 }
