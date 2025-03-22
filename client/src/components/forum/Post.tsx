@@ -45,7 +45,7 @@ const Post: React.FC<PostProps> = ({
             </div>
 
             <div className="p-4 pt-0">
-                {imageUrl && (
+                {false /* TODO: fix */ && imageUrl && (
                     <img
                         src={imageUrl}
                         alt={title}

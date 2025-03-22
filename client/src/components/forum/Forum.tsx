@@ -47,14 +47,66 @@ const Forum = ({ type }: ForumProps) => {
     const handleSubmit = async (data: { title: string; description: string; imageUrl: string }) => {
         try {
             if (editingPost) {
-                console.log('Updating post:', data);
+                // This uses optimistic approach (e.g. Instagram)
+                setPosts(prevPosts =>
+                    prevPosts.map(post =>
+                        post._id === editingPost._id
+                            ? { ...post, title: data.title, description: data.description, imageUrl: data.imageUrl }
+                            : post
+                    )
+                );
+
+                setShowPostForm(false);
+                setEditingPost(undefined);
+
+                await PostApiService.updatePost(editingPost._id, {
+                    title: data.title,
+                    description: data.description,
+                    imageUrl: data.imageUrl
+                });
             } else {
-                await PostApiService.createPost(data);
+                const tempId = Date.now().toString(); // note: not real ID!
+                const tempPost: PostProp = {
+                    _id: tempId,
+                    userId: { username: currentUsername },
+                    title: data.title,
+                    description: data.description,
+                    imageUrl: data.imageUrl,
+                    createdAt: new Date().getTime(),
+                };
+
+                setPosts(prevPosts => [tempPost, ...prevPosts]);
+                setShowPostForm(false);
+
+                const createdPostRaw = await PostApiService.createPost(data);
+
+                const createdPost: PostProp = {
+                    _id: createdPostRaw._id,
+                    userId: createdPostRaw.userId,
+                    title: createdPostRaw.title,
+                    description: createdPostRaw.description,
+                    imageUrl: '', // TODO: Replace with new URL
+                    createdAt: createdPostRaw.createdAt || new Date().getTime(),
+                };
+
+                setPosts(prevPosts =>
+                    prevPosts.map(post =>
+                        post._id === tempId ? createdPost : post
+                    )
+                );
             }
-            setShowPostForm(false);
-            setEditingPost(undefined);
         } catch (error) {
             console.error('Failed to create post:', error);
+        }
+    };
+
+    const handleDelete = async (postId: string) => {
+        try {
+            // Optimistic approach
+            setPosts(posts.filter(post => post._id !== postId));
+            await PostApiService.deletePost(postId);
+        } catch (error) {
+            console.error('Failed to delete post:', error);
         }
     };
 
@@ -105,6 +157,7 @@ const Forum = ({ type }: ForumProps) => {
                             currentUsername={currentUsername}
                             timestamp={post.createdAt}
                             onEdit={() => handleEdit(post)}
+                            onDelete={() => handleDelete(post._id)}
                         />
                     ))}
                 </div>

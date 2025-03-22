@@ -38,7 +38,9 @@ const getPosts: RequestHandler = async (req, res) => {
 
 const getPostById: RequestHandler = async (req, res) => {
     try {
+        console.log(req.params);
         const post = await Post.findById(req.params.id).populate('userId', 'username');
+        if (post) console.log(post);
         if (!post) {
             res.status(404).json({ message: 'Post not found' });
             return;
@@ -52,6 +54,12 @@ const getPostById: RequestHandler = async (req, res) => {
 const updatePost: RequestHandler = async (req, res) => {
     try {
         const { title, description, imageUrls } = req.body;
+
+        if (!title || !description) {
+            res.status(400).json({ message: 'Title and description are required' });
+            return;
+        }
+
         const post = await Post.findOne({ _id: req.params.id, userId: req.user.id });
 
         if (!post) {
@@ -59,13 +67,12 @@ const updatePost: RequestHandler = async (req, res) => {
             return;
         }
 
-        const updatedPost = await Post.findByIdAndUpdate(
-            req.params.id,
-            { title, description, imageUrls },
-            { new: true }
-        );
+        post.title = title;
+        post.description = description;
+        post.imageUrls = imageUrls || [];
 
-        res.json(updatedPost);
+        await post.save();
+        res.json(post);
     } catch (error) {
         res.status(500).json({ message: 'Error updating post' });
     }
@@ -87,7 +94,7 @@ const deletePost: RequestHandler = async (req, res) => {
 router.post('/', authenticateToken, createPost);
 router.get('/', getPosts);
 router.get('/:id', getPostById);
-router.patch('/:id', authenticateToken, updatePost);
+router.put('/:id', authenticateToken, updatePost);
 router.delete('/:id', authenticateToken, deletePost);
 
 export default router;

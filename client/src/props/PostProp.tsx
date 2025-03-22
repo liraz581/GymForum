@@ -5,8 +5,8 @@ class PostProp {
     imageUrl: string;
     description: string;
     createdAt: number;
-    likeCount: number;
-    commentCount: number;
+    likeCount?: number;
+    commentCount?: number;
 
     constructor(
         id: string,
@@ -15,8 +15,8 @@ class PostProp {
         imageUrl: string,
         description: string,
         createdAt: number,
-        likeCount: number,
-        commentCount: number,
+        likeCount?: number,
+        commentCount?: number,
     ) {
         this._id = id
         this.userId = {username}
