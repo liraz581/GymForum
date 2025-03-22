@@ -1,4 +1,5 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { authService } from '../../services/Auth';
 import {ROUTES} from "../gloabls/Constants";
 
 interface Route {
@@ -8,6 +9,7 @@ interface Route {
 
 export default function Header() {
     const location = useLocation();
+    const navigate = useNavigate();
     const routes: Route[] = [
         { path: ROUTES.EXPLORE, label: 'Explore' },
         { path: ROUTES.PROFILE, label: 'Profile' },
@@ -22,6 +24,11 @@ export default function Header() {
                         <Link
                             key={route.path}
                             to={route.path}
+                            onClick={route.label === 'Logout' ? (e) => {
+                                e.preventDefault();
+                                authService.logout();
+                                navigate(ROUTES.LOGIN);
+                            } : undefined}
                             className={`px-4 py-2 text-base font-bold ${
                                 location.pathname === route.path
                                     ? 'text-blue-600'

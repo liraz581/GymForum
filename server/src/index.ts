@@ -1,12 +1,24 @@
 import express, { Express, Request, Response } from 'express';
+import cors from 'cors';
+import authRoutes from './routes/auth';
+import { authenticateToken } from './middleware/authMiddleware';
+
 const app: Express = express();
 const PORT: number = 5000;
 
 app.use(express.json());
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
-app.get('/', (req: Request, res: Response) => {
-    res.json({ message: 'Welcome to GymForum API' });
+app.get('/protected', authenticateToken, (req: Request, res: Response) => {
+    res.json({ message: 'Protected route accessed successfully', user: req.user });
 });
+
+app.use('/auth', authRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
