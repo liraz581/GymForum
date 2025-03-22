@@ -2,6 +2,9 @@ import { Router, RequestHandler } from 'express';
 import { authenticateToken } from '../middleware/AuthMiddleware';
 import {PostsDAL} from "../DAL/PostsDAL";
 import Post from '../models/Post';
+import Like from "../models/Like";
+import Comment from '../models/Comment';
+import mongoose from "mongoose";
 
 const router = Router();
 
@@ -79,13 +82,20 @@ const updatePost: RequestHandler = async (req, res) => {
 
 const deletePost: RequestHandler = async (req, res) => {
     try {
-        const post = await Post.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
+        const post = await Post.findOne({ _id: req.params.id, userId: req.user.id });
+
         if (!post) {
             res.status(404).json({ message: 'Post not found or unauthorized' });
             return;
         }
+
+        await Like.deleteMany({ postId: post._id });
+        await Comment.deleteMany({ postId: post._id });
+        await Post.deleteOne({ _id: post._id });
+
         res.json({ message: 'Post deleted successfully' });
     } catch (error) {
+        console.error('Error deleting post:', error);
         res.status(500).json({ message: 'Error deleting post' });
     }
 };
