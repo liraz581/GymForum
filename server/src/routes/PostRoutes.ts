@@ -7,7 +7,6 @@ const router = Router();
 const createPost: RequestHandler = async (req, res) => {
     try {
         const { title, description, imageUrls } = req.body;
-        console.log(title, description, imageUrls);
 
         if (!title || !description) {
             res.status(400).json({ message: 'Title and description are required' });
@@ -31,7 +30,6 @@ const createPost: RequestHandler = async (req, res) => {
 const getPosts: RequestHandler = async (req, res) => {
     try {
         const posts = await Post.find().sort({ createdAt: -1 }).populate('userId', 'username');
-        console.log(posts);
         res.json(posts);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching posts' });
