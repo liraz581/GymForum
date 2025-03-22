@@ -228,9 +228,11 @@ const Forum = ({ type }: ForumProps) => {
                             imageUrl={post.imageUrl}
                             description={post.description}
                             currentUsername={currentUsername}
+                            postId={post._id}
                             timestamp={post.createdAt}
                             likeCount={post.likeCount || 0}
                             isLikedByCurrentUser={post.isLikedByCurrentUser || false}
+                            commentCount={post.commentCount || 0}
                             onEdit={() => handleEdit(post)}
                             onDelete={() => handleDelete(post._id)}
                             onLike={() => handleLike(post._id)}

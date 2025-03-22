@@ -48,7 +48,7 @@ export class PostApiService {
         }
 
         const posts = await response.json();
-        console.log(posts);
+
         return posts.map((post: PostProp) => new PostProp(
             post._id,
             post.userId.username,
@@ -57,7 +57,8 @@ export class PostApiService {
             post.description,
             post.createdAt,
             post.likeCount,
-            post.isLikedByCurrentUser
+            post.isLikedByCurrentUser,
+            post.commentCount
         ));
     }
 

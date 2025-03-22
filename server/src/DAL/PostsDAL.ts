@@ -16,6 +16,14 @@ export class PostsDAL {
                 },
                 {
                     $lookup: {
+                        from: 'comments',
+                        localField: '_id',
+                        foreignField: 'postId',
+                        as: 'comments'
+                    }
+                },
+                {
+                    $lookup: {
                         from: 'users',
                         localField: 'userId',
                         foreignField: '_id',
@@ -33,7 +41,8 @@ export class PostsDAL {
                         likeCount: { $size: '$likes' },
                         isLikedByCurrentUser: {
                             $in: [new mongoose.Types.ObjectId(currentUserId), '$likes.userId']
-                        }
+                        },
+                        commentCount: { $size: '$comments' }
                     }
                 },
                 {
@@ -45,7 +54,8 @@ export class PostsDAL {
                         imageUrls: 1,
                         createdAt: 1,
                         likeCount: 1,
-                        isLikedByCurrentUser: 1
+                        isLikedByCurrentUser: 1,
+                        commentCount: 1
                     }
                 }
             ]);

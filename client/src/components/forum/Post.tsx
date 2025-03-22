@@ -1,4 +1,7 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
+import Comments from './Comments';
+import {CommentApiService} from "../../services/api/CommentsServiceApi";
+import CommentProp from "../../props/CommentProp";
 
 interface PostProps {
     username: string;
@@ -7,8 +10,11 @@ interface PostProps {
     description: string;
     timestamp: number;
     currentUsername: string;
+    postId: string;
     likeCount: number;
     isLikedByCurrentUser: boolean;
+    comments?: CommentProp[];
+    commentCount: number,
     onEdit?: () => void;
     onDelete?: () => void;
     onLike?: () => Promise<void>;
@@ -22,8 +28,11 @@ const Post: React.FC<PostProps> = ({
                                        description,
                                        timestamp,
                                        currentUsername,
+                                       postId,
                                        likeCount,
                                        isLikedByCurrentUser,
+                                       comments = [],
+                                       commentCount,
                                        onEdit,
                                        onDelete,
                                        onLike,
@@ -31,6 +40,26 @@ const Post: React.FC<PostProps> = ({
                                    }) => {
     const [isLiked, setIsLiked] = useState(isLikedByCurrentUser);
     const [localLikeCount, setLocalLikeCount] = useState(likeCount);
+    const [localComments, setLocalComments] = useState<CommentProp[]>([]);
+    const [showComments, setShowComments] = useState(false);
+    const [localCommentCount, setLocalCommentCount] = useState(commentCount);
+
+    const fetchComments = async () => {
+        try {
+            const commentsData = await CommentApiService.getComments(postId);
+            setLocalComments(commentsData);
+            setLocalCommentCount(commentsData.length); // Technically an override
+        } catch (error) {
+            console.error('Failed to fetch comments:', error);
+        }
+    };
+
+    const handleCommentsToggle = async () => {
+        if (!showComments) {
+            await fetchComments();
+        }
+        setShowComments(prev => !prev);
+    };
 
     const handleLike = async () => {
         setIsLiked(true);
@@ -53,6 +82,25 @@ const Post: React.FC<PostProps> = ({
             setIsLiked(true);
             setLocalLikeCount(prev => prev + 1);
             console.error('Failed to unlike post:', error);
+        }
+    };
+
+    const handleAddComment = async (text: string) => {
+        const tempComment = new CommentProp(Date.now().toString(), currentUsername, text, Date.now());
+        setLocalComments(prev => [...prev, tempComment]);
+        setLocalCommentCount(prev => prev + 1);
+
+        try {
+            const createdComment = await CommentApiService.addComment(postId, text, Date.now());
+            setLocalComments(prev =>
+                prev.map(c => {
+                    return c.id === tempComment.id ? createdComment : c;
+                })
+            );
+        } catch (error) {
+            setLocalComments(prev => prev.filter(c => c.id !== tempComment.id));
+            setLocalCommentCount(prev => prev - 1);
+            console.error('Failed to add comment:', error);
         }
     };
 
@@ -99,9 +147,9 @@ const Post: React.FC<PostProps> = ({
                     <span className="text-lg">♥</span>
                     <span>{localLikeCount}</span>
                 </button>
-                <button className="flex items-center gap-1 text-gray-600 hover:text-gray-800">
+                <button onClick={handleCommentsToggle} className="flex items-center gap-1 text-gray-600 hover:text-gray-800">
                     <span className="text-lg">💬</span>
-                    <span>{7}</span>
+                    <span>{localCommentCount}</span> {/* TODO: Reaplce with comment count in poas */}
                 </button>
                 {username === currentUsername && onEdit && (
                     <>
@@ -122,6 +170,16 @@ const Post: React.FC<PostProps> = ({
                     </>
                 )}
             </div>
+
+            {showComments && (
+                <Comments
+                    postId={postId}
+                    comments={localComments}
+                    currentUsername={currentUsername}
+                    onAddComment={handleAddComment}
+                    commentCount={commentCount}
+                />
+            )}
         </div>
     );
 };

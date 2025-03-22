@@ -5,16 +5,15 @@ export interface ILike extends Document {
     postId: mongoose.Types.ObjectId;
 }
 
-// Define the Like schema
 const LikeSchema: Schema = new Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User', // Reference to the User model
+        ref: 'User',
         required: true
     },
     postId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Post', // Reference to the Post model
+        ref: 'Post',
         required: true
     }
 });
