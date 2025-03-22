@@ -1,5 +1,6 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
+import mongoose from 'mongoose';
 import authRoutes from './routes/auth';
 import { authenticateToken } from './middleware/authMiddleware';
 
@@ -17,6 +18,12 @@ app.use(cors({
 app.get('/protected', authenticateToken, (req: Request, res: Response) => {
     res.json({ message: 'Protected route accessed successfully', user: req.user });
 });
+
+const MONGO_URI = 'mongodb://localhost:27017/gymforum';
+
+mongoose.connect(MONGO_URI)
+    .then(() => console.log('Connected to MongoDB'))
+    .catch((error) => console.error('MongoDB connection error:', error));
 
 app.use('/auth', authRoutes);
 

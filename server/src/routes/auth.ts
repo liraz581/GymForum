@@ -3,17 +3,9 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../middleware/authMiddleware';
 import { authenticateToken } from '../middleware/authMiddleware';
+import User, { IUser } from '../models/User';
 
 const router = Router();
-
-interface User {
-    id: number;
-    email: string;
-    password: string;
-}
-
-// TODO: Implement into DB
-const users: User[] = [];
 
 const register: RequestHandler = async (req, res) => {
     try {
@@ -29,20 +21,20 @@ const register: RequestHandler = async (req, res) => {
             return;
         }
 
-        const existingUser = users.find(u => u.email === email);
+        const existingUser = await User.findOne({ email });
         if (existingUser) {
             res.status(400).json({ message: 'User already exists' });
             return;
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user: User = {
-            id: users.length + 1,
+        const user = new User({
+            username,
             email,
             password: hashedPassword
-        };
+        });
 
-        users.push(user);
+        await user.save();
 
         const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
             expiresIn: '1h'
@@ -62,9 +54,7 @@ const register: RequestHandler = async (req, res) => {
 const login: RequestHandler = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = users.find(u => u.email === email);
-
-        console.log(req.body);
+        const user = await User.findOne({ email });
 
         if (!user || !(await bcrypt.compare(password, user.password))) {
             res.status(401).json({ message: 'Invalid credentials' });
@@ -75,7 +65,11 @@ const login: RequestHandler = async (req, res) => {
             expiresIn: '1h'
         });
 
-        res.json({ token });
+        const { password: _, ...userWithoutPassword } = user.toObject();
+        res.json({
+            token,
+            user: userWithoutPassword
+        });
     } catch (error) {
         res.status(500).json({ message: 'Error logging in' });
     }
@@ -83,12 +77,12 @@ const login: RequestHandler = async (req, res) => {
 
 const getMe: RequestHandler = async (req, res) => {
     try {
-        const user: User | undefined = users.find(u => u.id === req.user.id);
+        const user = await User.findById(req.user.id);
 
         if (!user) {
             res.status(404).json({ message: 'User not found' });
         } else {
-            const { password, ...userWithoutPassword } = user;
+            const { password, ...userWithoutPassword } = user.toObject();
             res.json(userWithoutPassword);
         }
     } catch (error) {
