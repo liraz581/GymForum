@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
+import {ROUTES} from "../gloabls/Constants";
 
 interface Route {
     path: string;
@@ -8,9 +9,9 @@ interface Route {
 export default function Header() {
     const location = useLocation();
     const routes: Route[] = [
-        { path: '/explore', label: 'Explore' },
-        { path: '/profile', label: 'Profile' },
-        { path: '/home', label: 'Logout' }
+        { path: ROUTES.EXPLORE, label: 'Explore' },
+        { path: ROUTES.PROFILE, label: 'Profile' },
+        { path: ROUTES.LOGIN, label: 'Logout' }
     ];
 
     return (
