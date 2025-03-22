@@ -25,7 +25,7 @@ class Mock {
         ),
         new PostProp(
             'id3',
-            'liraz',
+            'liraz581',
             'This is my post!',
             'https://www.spongebobshop.com/cdn/shop/products/SB-WO-LARRYS-TEE_Viacom_SpongeBob_UnisexTshirt_1701_Banana_Image02_800x.jpg?v=1585771418',
             'but only if it works',

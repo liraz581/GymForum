@@ -1,10 +1,11 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import Post from './Post';
 import PostForm from "./PostForm";
 
 import PostProp from "../../props/PostProp";
 import Mock from "../../props/Mock";
 import {ForumType} from "../../types/Types";
+import {UserApiService} from "../../services/api/UserApiService";
 
 interface ForumProps {
     type: ForumType;
@@ -13,11 +14,24 @@ interface ForumProps {
 const Forum = ({ type }: ForumProps) => {
     const [showPostForm, setShowPostForm] = useState(false);
     const [editingPost, setEditingPost] = useState<PostProp | undefined>(undefined);
+    const [currentUsername, setCurrentUsername] = useState<string>('');
+
+    useEffect(() => {
+        const fetchUsername = async () => {
+            try {
+                const userData = await UserApiService.getCurrentUser();
+                setCurrentUsername(userData.username);
+            } catch (err) {
+                console.error('Failed to fetch user data');
+            }
+        };
+        fetchUsername();
+    }, []);
 
     const mockPosts: PostProp[] = Mock.mockPosts;
     const posts = type === ForumType.MY_POSTS
-        ? mockPosts.filter(post => post.username === 'liraz')
-        : mockPosts.filter(post => post.username !== 'liraz');
+        ? mockPosts.filter(post => post.username === currentUsername)
+        : mockPosts.filter(post => post.username !== currentUsername);
     // TODO: replace with username, and make query to differentiate
 
     const handleSubmit = async (data: { title: string; description: string; imageUrl: string }) => {

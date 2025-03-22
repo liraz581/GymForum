@@ -7,15 +7,14 @@ const Register = () => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [imageUrl, setImageUrl] = useState('');
     const [errorCreatingUser, setErrorCreatingUser] = useState('');
     const navigate = useNavigate();
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await authService.register(username, email, password, imageUrl);
-            navigate(ROUTES.EXPLORE);
+            await authService.register(username, email, password);
+            navigate(ROUTES.LOGIN);
         } catch (err) {
             setErrorCreatingUser('Failed to register');
         }
@@ -51,13 +50,6 @@ const Register = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         className="w-full px-3 py-2 border rounded-md"
                         required
-                    />
-                    <input
-                        type="url"
-                        placeholder="Profile Image URL (optional)"
-                        value={imageUrl}
-                        onChange={(e) => setImageUrl(e.target.value)}
-                        className="w-full px-3 py-2 border rounded-md"
                     />
                     <button
                         type="submit"

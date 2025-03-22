@@ -1,14 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import UserProp from '../../props/UserProp';
 import Forum from '../forum/Forum';
 import { ForumType } from '../../types/Types';
-import Mock from "../../props/Mock";
+import {UserApiService} from "../../services/api/UserApiService";
 
 import {styles} from "./UserProfileStyle";
 
 const UserProfile = () => {
-    const user: UserProp = Mock.mockUser;
+    const [user, setUser] = useState<UserProp | null>(null);
+    const [error, setError] = useState<string>('');
     const [isEditing, setIsEditing] = useState(false);
+    const [newUsername, setNewUsername] = useState('');
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const userData = await UserApiService.getCurrentUser();
+
+                // TODO: Replace after integrating images
+                if (userData.imageUrl === '') {
+                    userData.imageUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsJeP_sxmERoOejeq3vvMR1anQOxC3eBYMBsyPE_Bbb0WWMA8ky6bmUlOTboOPFFQxSQc&usqp=CAU';
+                }
+                setUser(userData);
+            } catch (err) {
+                setError('Failed to load user profile');
+            }
+        };
+
+        fetchUser();
+    }, []);
+
+    const handleSave = async () => {
+        try {
+            const updatedUser = await UserApiService.updateUsername(newUsername);
+            setUser({
+                ...updatedUser,
+                imageUrl: user?.imageUrl || updatedUser.imageUrl // Preserve the existing image URL
+            });
+            setIsEditing(false);
+        } catch (err) {
+            setError('Failed to update username');
+        }
+    };
+
+    if (error) return <div className="text-red-500 text-center mt-4">{error}</div>;
+    if (!user) return <div className="text-center mt-4">Loading...</div>;
 
     return (
         <div className={styles.container}>
@@ -38,7 +74,8 @@ const UserProfile = () => {
                                 <input
                                     type="text"
                                     defaultValue={user.username}
-                                    className="bg-white rounded px-2 py-1"
+                                    onChange={(e) => setNewUsername(e.target.value)}
+                                    className="bg-white text-gray-900 rounded px-2 py-1 border border-gray-300"
                                 />
                             ) : user.username}
                         </h1>
@@ -49,7 +86,7 @@ const UserProfile = () => {
                             <div className="flex gap-2">
                                 <button
                                     className={`${styles.button} bg-white`}
-                                    onClick={() => setIsEditing(false)}
+                                    onClick={handleSave}
                                 >
                                     Save
                                 </button>

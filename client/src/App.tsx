@@ -4,6 +4,7 @@ import './App.css';
 
 import Login from "./components/user/Login";
 import Register from "./components/user/Register";
+import PrivateRoute from "./components/user/PrivateRoute";
 import Header from './components/header/Header';
 import Forum from "./components/forum/Forum";
 import UserProfile from "./components/user/UserProfile";
@@ -28,10 +29,14 @@ function App() {
             <Routes>
                 <Route path={ROUTES.LOGIN} element={<Login />} />
                 <Route path={ROUTES.REGISTER} element={<Register />} />
-                <Route path="/" element={<Layout />}>
-                    <Route index element={<Navigate to={ROUTES.EXPLORE} replace />} />
-                    <Route path={ROUTES.EXPLORE} element={<Forum type={ForumType.ALL_POSTS} />} />
-                    <Route path={ROUTES.PROFILE} element={<UserProfile />} />
+
+
+                <Route element={<PrivateRoute />}>
+                    <Route element={<Layout />}>
+                        <Route index element={<Navigate to={ROUTES.EXPLORE} replace />} />
+                        <Route path={ROUTES.EXPLORE} element={<Forum type={ForumType.ALL_POSTS} />} />
+                        <Route path={ROUTES.PROFILE} element={<UserProfile />} />
+                    </Route>
                 </Route>
             </Routes>
         </BrowserRouter>
