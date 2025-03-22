@@ -6,6 +6,7 @@ interface PostProps {
     imageUrl: string;
     description: string;
     timestamp: number;
+    currentUsername: string;
     onEdit?: () => void;
     onDelete?: () => void;
 }
@@ -16,6 +17,7 @@ const Post: React.FC<PostProps> = ({
                                        imageUrl,
                                        description,
                                        timestamp,
+                                       currentUsername,
                                        onEdit,
                                        onDelete
                                    }) => {
@@ -65,7 +67,7 @@ const Post: React.FC<PostProps> = ({
                     <span className="text-lg">💬</span>
                     <span>{7}</span>
                 </button>
-                {username === 'liraz' && onEdit && (
+                {username === currentUsername && onEdit && (
                     <>
                         <button
                             onClick={onEdit}

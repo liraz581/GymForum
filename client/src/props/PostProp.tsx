@@ -1,6 +1,6 @@
 class PostProp {
-    id: string;
-    username: string;
+    _id: string;
+    userId: { username: string }; // for DB
     title: string;
     imageUrl: string;
     description: string;
@@ -18,8 +18,8 @@ class PostProp {
         likeCount: number,
         commentCount: number,
     ) {
-        this.id = id
-        this.username = username;
+        this._id = id
+        this.userId = {username}
         this.title = title;
         this.imageUrl = imageUrl;
         this.description = description;

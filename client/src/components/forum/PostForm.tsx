@@ -27,7 +27,6 @@ const PostForm = ({ post, onSubmit, onCancel }: PostFormProps) => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit({ title, description, imageUrl });
         setError('');
         setIsLoading(true);
 

@@ -3,9 +3,9 @@ import Post from './Post';
 import PostForm from "./PostForm";
 
 import PostProp from "../../props/PostProp";
-import Mock from "../../props/Mock";
 import {ForumType} from "../../types/Types";
 import {UserApiService} from "../../services/api/UserApiService";
+import {PostApiService} from "../../services/api/PostServiceApi";
 
 interface ForumProps {
     type: ForumType;
@@ -15,33 +15,47 @@ const Forum = ({ type }: ForumProps) => {
     const [showPostForm, setShowPostForm] = useState(false);
     const [editingPost, setEditingPost] = useState<PostProp | undefined>(undefined);
     const [currentUsername, setCurrentUsername] = useState<string>('');
+    const [posts, setPosts] = useState<PostProp[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const fetchUsername = async () => {
+        const fetchData = async () => {
+            setIsLoading(true);
             try {
                 const userData = await UserApiService.getCurrentUser();
                 setCurrentUsername(userData.username);
+
+                const postsData = await PostApiService.getPosts();
+                setPosts(postsData);
             } catch (err) {
-                console.error('Failed to fetch user data');
+                console.error('Failed to fetch data:', err);
+                setError('Failed to load data. Please try again later.');
+            } finally {
+                setIsLoading(false);
             }
         };
-        fetchUsername();
+
+        fetchData();
     }, []);
 
-    const mockPosts: PostProp[] = Mock.mockPosts;
-    const posts = type === ForumType.MY_POSTS
-        ? mockPosts.filter(post => post.username === currentUsername)
-        : mockPosts.filter(post => post.username !== currentUsername);
+    const filteredPosts = type === ForumType.MY_POSTS
+        ? posts.filter(post => post.userId.username === currentUsername)
+        : posts.filter(post => post.userId.username !== currentUsername);
     // TODO: replace with username, and make query to differentiate
 
     const handleSubmit = async (data: { title: string; description: string; imageUrl: string }) => {
-        if (editingPost) {
-            console.log('Updating post:', data);
-        } else {
-            console.log('Creating post:', data);
+        try {
+            if (editingPost) {
+                console.log('Updating post:', data);
+            } else {
+                await PostApiService.createPost(data);
+            }
+            setShowPostForm(false);
+            setEditingPost(undefined);
+        } catch (error) {
+            console.error('Failed to create post:', error);
         }
-        setShowPostForm(false);
-        setEditingPost(undefined);
     };
 
     const handleEdit = (post: PostProp) => {
@@ -81,13 +95,14 @@ const Forum = ({ type }: ForumProps) => {
                     {type === ForumType.ALL_POSTS ? 'Explore Posts' : 'Your Posts'}
                 </h2>
                 <div className="space-y-6">
-                    {posts.map((post) => (
+                    {filteredPosts.map((post: PostProp) => (
                         <Post
-                            key={post.id}
-                            username={post.username}
+                            key={post._id}
+                            username={post.userId.username}
                             title={post.title}
                             imageUrl={post.imageUrl}
                             description={post.description}
+                            currentUsername={currentUsername}
                             timestamp={post.createdAt}
                             onEdit={() => handleEdit(post)}
                         />
