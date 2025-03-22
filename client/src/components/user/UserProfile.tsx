@@ -1,14 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import UserProp from '../../props/UserProp';
 import Forum from '../forum/Forum';
 import { ForumType } from '../../types/Types';
+import {UserApiService} from "../../services/api/UserApiService";
 import Mock from "../../props/Mock";
 
 import {styles} from "./UserProfileStyle";
 
 const UserProfile = () => {
-    const user: UserProp = Mock.mockUser;
+    const [user, setUser] = useState<UserProp | null>(null);
+    const [error, setError] = useState<string>('');
     const [isEditing, setIsEditing] = useState(false);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const userData = await UserApiService.getCurrentUser();
+
+                // TODO: Replace after integrating images
+                if (userData.imageUrl === '') {
+                    userData.imageUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsJeP_sxmERoOejeq3vvMR1anQOxC3eBYMBsyPE_Bbb0WWMA8ky6bmUlOTboOPFFQxSQc&usqp=CAU';
+                }
+                setUser(userData);
+            } catch (err) {
+                setError('Failed to load user profile');
+            }
+        };
+
+        fetchUser();
+    }, []);
+
+    if (error) return <div className="text-red-500 text-center mt-4">{error}</div>;
+    if (!user) return <div className="text-center mt-4">Loading...</div>;
 
     return (
         <div className={styles.container}>
