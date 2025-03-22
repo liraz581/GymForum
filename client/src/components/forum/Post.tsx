@@ -1,19 +1,23 @@
 import React from 'react';
 
-interface PostProp {
+interface PostProps {
     username: string;
     title: string;
     imageUrl: string;
     description: string;
-    timestamp: string;
+    timestamp: number;
+    onEdit?: () => void;
+    onDelete?: () => void;
 }
 
-const Post: React.FC<PostProp> = ({
+const Post: React.FC<PostProps> = ({
                                        username,
                                        title,
                                        imageUrl,
                                        description,
-                                       timestamp
+                                       timestamp,
+                                       onEdit,
+                                       onDelete
                                    }) => {
     return (
         <div className="max-w-md mx-auto bg-white shadow-md rounded-lg overflow-hidden mb-6">
@@ -61,6 +65,24 @@ const Post: React.FC<PostProp> = ({
                     <span className="text-lg">💬</span>
                     <span>{7}</span>
                 </button>
+                {username === 'liraz' && onEdit && (
+                    <>
+                        <button
+                            onClick={onEdit}
+                            className="flex items-center gap-1 text-gray-600 hover:text-gray-800"
+                        >
+                            <span className="text-lg">✎</span>
+                            <span>Edit</span>
+                        </button>
+                        <button
+                            onClick={onDelete}
+                            className="flex items-center gap-1 text-gray-600 hover:text-red-500"
+                        >
+                            <span className="text-lg">🗑️</span>
+                            <span>Delete</span>
+                        </button>
+                    </>
+                )}
             </div>
         </div>
     );
