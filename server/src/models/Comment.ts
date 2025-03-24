@@ -26,6 +26,10 @@ const CommentSchema: Schema = new Schema({
     timestamp: {
         type: Number,
         required: false,
+    },
+    imageUrl: {
+        type: String,
+        required: false
     }
 });
 

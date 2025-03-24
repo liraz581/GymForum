@@ -33,7 +33,8 @@ export class PostsDAL {
                 { $unwind: '$userId' },
                 {
                     $set: {
-                        'userId': { username: '$userId.username' }
+                        'userId': { username: '$userId.username' },
+                        posterImage: '$userId.imageUrl'
                     }
                 },
                 {
@@ -55,7 +56,8 @@ export class PostsDAL {
                         createdAt: 1,
                         likeCount: 1,
                         isLikedByCurrentUser: 1,
-                        commentCount: 1
+                        commentCount: 1,
+                        posterImage: 1,
                     }
                 }
             ]);

@@ -2,22 +2,26 @@ import {SERVER_URL} from "../../components/gloabls/Constants";
 import PostProp from "../../props/PostProp";
 
 export class PostApiService {
-    static async createPost(data: { title: string; description: string; imageUrl: string }): Promise<PostProp> {
+    static async createPost(data: { title: string; description: string; image: File | null }): Promise<PostProp> {
         const token = localStorage.getItem('token');
+
+        const formData = new FormData();
+        formData.append('title', data.title);
+        formData.append('description', data.description);
+        if (data.image) {
+            formData.append('image', data.image);
+        }
+
         const response = await fetch(`${SERVER_URL}/posts`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                title: data.title,
-                description: data.description,
-                imageUrls: [data.imageUrl]
-            })
+            body: formData
         });
 
         if (!response.ok) {
+            console.error('Server error:', response.status, response.text);
             throw new Error('Failed to create post');
         }
 
@@ -26,7 +30,7 @@ export class PostApiService {
             post._id,
             post.userId,
             post.title,
-            post.imageUrls || '',
+            post.imageUrls || null,
             post.description,
             new Date().getTime(),
             0
@@ -53,33 +57,36 @@ export class PostApiService {
             post._id,
             post.userId.username,
             post.title,
-            post.imageUrl || '',
+            (post.imageUrls[0] ? `${SERVER_URL}/uploads/posts/${post.imageUrls}` : ''),
             post.description,
             post.createdAt,
             post.likeCount,
             post.isLikedByCurrentUser,
-            post.commentCount
+            post.commentCount,
+            (post.posterImage ? `${SERVER_URL}/uploads/users/${post.posterImage}` : ''),
         ));
     }
 
-    static async updatePost(postId: string, data: { title: string; description: string; imageUrl: string }): Promise<PostProp> {
+    static async updatePost(postId: string, data: { title: string; description: string; image: File | null }): Promise<PostProp> {
         const token = localStorage.getItem('token');
 
         if (!data.title || !data.description) {
             throw new Error('Title and description are required');
         }
 
+        const formData = new FormData();
+        formData.append('title', data.title);
+        formData.append('description', data.description);
+        if (data.image) {
+            formData.append('image', data.image);
+        }
+
         const response = await fetch(`${SERVER_URL}/posts/${postId}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                title: data.title,
-                description: data.description,
-                imageUrls: data.imageUrl ? data.imageUrl : ''
-            })
+            body: formData
         });
 
         if (!response.ok) {
@@ -88,11 +95,13 @@ export class PostApiService {
         }
 
         const post = await response.json();
+
+        // TODO: fix image not showing up for some reason
         return new PostProp(
             post._id,
-            post.userId.username || post.userId,
+            post.userId,
             post.title,
-            post.imageUrl || '',
+            (post.imageUrls[0] ? `${SERVER_URL}/uploads/posts/${post.imageUrls}` : ''),
             post.description,
             post.createdAt || new Date().getTime(),
             post.likeCount

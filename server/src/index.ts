@@ -9,11 +9,11 @@ import likeRoutes from "./routes/LikeRoutes";
 import commentsRoutes from "./routes/CommentsRoutes";
 
 import { authenticateToken } from './middleware/AuthMiddleware';
+import path from "path";
 
 const app: Express = express();
 const PORT: number = 5000;
 
-app.use(express.json());
 app.use(cors({
     origin: 'http://localhost:3000',
     credentials: true,
@@ -31,11 +31,15 @@ mongoose.connect(MONGO_URI)
     .then(() => console.log('Connected to MongoDB'))
     .catch((error) => console.error('MongoDB connection error:', error));
 
-app.use('/auth', authRoutes);
-app.use('/user', userRoutes);
 app.use('/posts', postRoutes);
+app.use('/user', userRoutes);
+
+app.use(express.json());
+app.use('/auth', authRoutes);
 app.use('/likes', likeRoutes);
 app.use('/api', commentsRoutes);
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

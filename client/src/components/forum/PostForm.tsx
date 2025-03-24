@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 
 interface PostFormProps {
-    onSubmit: (data: { title: string; description: string; imageUrl: string }) => void;
+    onSubmit: (data: { title: string; description: string; image: File | null }) => void;
     onCancel: () => void;
     post?: {
         title: string;
         description: string;
-        imageUrl: string;
+        imageUrls: string;
     };
 }
 
 const PostForm = ({ post, onSubmit, onCancel }: PostFormProps) => {
     const [title, setTitle] = useState(post?.title || '');
     const [description, setDescription] = useState(post?.description || '');
-    const [imageUrl, setImageUrl] = useState(post?.imageUrl || '');
+    const [image, setImage] = useState<File | null>(null);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -21,7 +21,7 @@ const PostForm = ({ post, onSubmit, onCancel }: PostFormProps) => {
         if (post) {
             setTitle(post.title);
             setDescription(post.description);
-            setImageUrl(post.imageUrl);
+            setImage(null);
         }
     }, [post]);
 
@@ -31,10 +31,10 @@ const PostForm = ({ post, onSubmit, onCancel }: PostFormProps) => {
         setIsLoading(true);
 
         try {
-            await onSubmit({ title, description, imageUrl });
+            await onSubmit({ title, description, image });
             setTitle('');
             setDescription('');
-            setImageUrl('');
+            setImage(null);
         } catch (err) {
             setError('Failed to submit post');
         } finally {
@@ -62,12 +62,10 @@ const PostForm = ({ post, onSubmit, onCancel }: PostFormProps) => {
                     onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                            // TODO: Handle file upload when implementing backend
-                            setImageUrl(file.name); // Temporary, will need to change this
+                            setImage(file);
                         }
                     }}
                     className="w-full px-3 py-2 border rounded-md"
-                    required
                 />
 
                 <textarea

@@ -6,6 +6,7 @@ interface RawComment {
     userId: string;
     text: string;
     timestamp: number;
+    imageUrl: string;
 }
 
 export class CommentApiService {
@@ -26,7 +27,8 @@ export class CommentApiService {
                 comment._id,
                 comment.userId,
                 comment.text,
-                comment.timestamp
+                comment.timestamp,
+                comment.imageUrl ? `${SERVER_URL}/uploads/users/${comment.imageUrl}` : ''
             )
         );
     }
@@ -43,6 +45,6 @@ export class CommentApiService {
         });
         if (!response.ok) throw new Error('Failed to add comment');
         const data = await response.json();
-        return new CommentProp(data.comment._id, data.comment.userId._id, data.comment.text, Date.now());
+        return new CommentProp(data.comment._id, data.comment.userId._id, data.comment.text, Date.now(), data.comment.imageUrl);
     }
 }

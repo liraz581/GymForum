@@ -11,6 +11,7 @@ const UserProfile = () => {
     const [error, setError] = useState<string>('');
     const [isEditing, setIsEditing] = useState(false);
     const [newUsername, setNewUsername] = useState('');
+    const [image, setImage] = useState<File | null>(null);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -32,11 +33,19 @@ const UserProfile = () => {
 
     const handleSave = async () => {
         try {
-            const updatedUser = await UserApiService.updateUsername(newUsername);
-            setUser({
-                ...updatedUser,
-                imageUrl: user?.imageUrl || updatedUser.imageUrl // Preserve the existing image URL
-            });
+            if (newUsername != '') {
+                const updatedUser = await UserApiService.updateUsername(newUsername);
+                setUser({
+                    ...updatedUser,
+                    imageUrl: user?.imageUrl || updatedUser.imageUrl // Preserve the existing image URL
+                });
+            }
+            if (image != null) {
+                const updatedUser = await UserApiService.updateImage(image);
+                setUser({
+                    ...updatedUser
+                })
+            }
             setIsEditing(false);
         } catch (err) {
             setError('Failed to update username');
@@ -71,12 +80,35 @@ const UserProfile = () => {
                     <div>
                         <h1 className={styles.username}>
                             {isEditing ? (
-                                <input
-                                    type="text"
-                                    defaultValue={user.username}
-                                    onChange={(e) => setNewUsername(e.target.value)}
-                                    className="bg-white text-gray-900 rounded px-2 py-1 border border-gray-300"
-                                />
+                                <>
+                                    <input
+                                        type="text"
+                                        defaultValue={user.username}
+                                        onChange={(e) => setNewUsername(e.target.value)}
+                                        className="bg-white text-gray-900 rounded px-2 py-1 border border-gray-300"
+                                    />
+                                    <hr className="my-2 border-gray-300" />
+                                    <div className="relative">
+                                        <input
+                                            type="file"
+                                            id="file-upload"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    setImage(file);
+                                                }
+                                            }}
+                                            className="hidden"
+                                        />
+                                        <label
+                                            htmlFor="file-upload"
+                                            className="inline-block bg-blue-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-blue-600 transition-colors"
+                                        >
+                                            Choose Image
+                                        </label>
+                                    </div>
+                                </>
                             ) : user.username}
                         </h1>
                         <p className={styles.email}>

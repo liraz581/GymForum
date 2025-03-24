@@ -8,6 +8,7 @@ const router = Router();
 interface PopulatedUser {
     _id: mongoose.Types.ObjectId;
     username: string;
+    imageUrl?: string;
 }
 
 const createComment: RequestHandler = async (req, res) => {
@@ -45,7 +46,7 @@ const getCommentsByPostId: RequestHandler = async (req, res) => {
         }
 
         const comments = await Comment.find({ postId })
-            .populate<{ userId: PopulatedUser }>('userId', 'username')
+            .populate<{ userId: PopulatedUser }>('userId', 'username imageUrl')
             .sort({ timestamp: -1 });
 
         const transformedComments = comments.map(comment => ({
@@ -53,7 +54,8 @@ const getCommentsByPostId: RequestHandler = async (req, res) => {
             postId: comment.postId,
             text: comment.text,
             userId: comment.userId.username,
-            timestamp: comment.timestamp
+            timestamp: comment.timestamp,
+            imageUrl: comment.userId.imageUrl
         }));
 
         res.json(transformedComments);

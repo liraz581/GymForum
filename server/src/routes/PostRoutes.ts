@@ -1,27 +1,62 @@
-import { Router, RequestHandler } from 'express';
+import express, { Router, RequestHandler } from 'express';
 import { authenticateToken } from '../middleware/AuthMiddleware';
 import {PostsDAL} from "../DAL/PostsDAL";
 import Post from '../models/Post';
 import Like from "../models/Like";
 import Comment from '../models/Comment';
-import mongoose from "mongoose";
+import sharp from 'sharp';
+import path from 'path';
+import { promises as fs } from 'fs';
+import upload from "../middleware/Multer";
 
 const router = Router();
 
+const postImagesDirectory = path.join(__dirname, '../uploads/posts');
+
+// TODO: Remove?
+(async () => {
+    try {
+        await fs.mkdir(postImagesDirectory, { recursive: true });
+    } catch (error) {
+        console.error('Failed to create post images directory:', error);
+    }
+})();
+
+interface AuthenticatedRequest extends express.Request {
+    user: { id: string };
+    files?: Express.Multer.File[];
+}
+
 const createPost: RequestHandler = async (req, res) => {
     try {
-        const { title, description, imageUrls } = req.body;
+        const { title, description } = req.body;
 
         if (!title || !description) {
             res.status(400).json({ message: 'Title and description are required' });
             return;
         }
 
+        let imageUrl: string = '';
+        if (req.file) {
+            await fs.mkdir(postImagesDirectory, { recursive: true });
+
+            imageUrl = `${Date.now()}-${req.file.originalname}`;
+
+            const imagePath = path.join(
+                postImagesDirectory,
+                imageUrl
+            );
+
+            await sharp(req.file.buffer)
+                .resize(800, 800, { fit: 'inside' })
+                .toFile(imagePath);
+        }
+
         const post = new Post({
             userId: req.user.id,
             title,
             description,
-            imageUrls: imageUrls || []
+            imageUrls: imageUrl || ''
         });
 
         await post.save();
@@ -55,11 +90,27 @@ const getPostById: RequestHandler = async (req, res) => {
 
 const updatePost: RequestHandler = async (req, res) => {
     try {
-        const { title, description, imageUrls } = req.body;
+        const { title, description } = req.body;
 
         if (!title || !description) {
             res.status(400).json({ message: 'Title and description are required' });
             return;
+        }
+
+        let imageUrl: string = '';
+        if (req.file) {
+            await fs.mkdir(postImagesDirectory, { recursive: true });
+
+            imageUrl = `${Date.now()}-${req.file.originalname}`;
+
+            const imagePath = path.join(
+                postImagesDirectory,
+                imageUrl
+            );
+
+            await sharp(req.file.buffer)
+                .resize(800, 800, { fit: 'inside' })
+                .toFile(imagePath);
         }
 
         const post = await Post.findOne({ _id: req.params.id, userId: req.user.id });
@@ -71,7 +122,10 @@ const updatePost: RequestHandler = async (req, res) => {
 
         post.title = title;
         post.description = description;
-        post.imageUrls = imageUrls || [];
+
+        if (req.file) {
+            post.imageUrls[0] = imageUrl;
+        }
 
         await post.save();
         res.json(post);
@@ -100,10 +154,10 @@ const deletePost: RequestHandler = async (req, res) => {
     }
 };
 
-router.post('/', authenticateToken, createPost);
+router.post('/', authenticateToken, upload.single('image'), createPost);
+router.put('/:id', authenticateToken, upload.single('image'), updatePost);
 router.get('/', authenticateToken, getPosts);
-router.get('/:id', getPostById);
-router.put('/:id', authenticateToken, updatePost);
-router.delete('/:id', authenticateToken, deletePost);
+router.get('/:id', express.json(), getPostById);
+router.delete('/:id', authenticateToken, express.json(), deletePost);
 
 export default router;
