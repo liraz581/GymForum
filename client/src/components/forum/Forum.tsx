@@ -7,6 +7,7 @@ import {ForumType} from "../../types/Types";
 import {UserApiService} from "../../services/api/UserApiService";
 import {PostApiService} from "../../services/api/PostServiceApi";
 import {LikeServiceApi} from "../../services/api/LikeServiceApi";
+import {SERVER_URL} from "../gloabls/Constants";
 
 interface ForumProps {
     type: ForumType;
@@ -57,16 +58,15 @@ const Forum = ({ type }: ForumProps) => {
     const filteredPosts = type === ForumType.MY_POSTS
         ? posts.filter(post => post.userId.username === currentUsername)
         : posts.filter(post => post.userId.username !== currentUsername);
-    // TODO: replace with username, and make query to differentiate
 
-    const handleSubmit = async (data: { title: string; description: string; imageUrl: string }) => {
+    const handleSubmit = async (data: { title: string; description: string; image: File | null }) => {
         try {
             if (editingPost) {
                 // This uses optimistic approach (e.g. Instagram)
                 setPosts(prevPosts =>
                     prevPosts.map(post =>
                         post._id === editingPost._id
-                            ? { ...post, title: data.title, description: data.description, imageUrl: data.imageUrl }
+                            ? { ...post, title: data.title, description: data.description, imageUrls: '' }
                             : post
                     )
                 );
@@ -74,19 +74,21 @@ const Forum = ({ type }: ForumProps) => {
                 setShowPostForm(false);
                 setEditingPost(undefined);
 
-                await PostApiService.updatePost(editingPost._id, {
+                const editedPost = await PostApiService.updatePost(editingPost._id, {
                     title: data.title,
                     description: data.description,
-                    imageUrl: data.imageUrl
+                    image: data.image
                 });
+
+                setPosts(prevPosts => [editedPost, ...prevPosts]);
             } else {
                 const tempId = Date.now().toString(); // note: not real ID!
-                const tempPost: PostProp = {
+                const tempPost = {
                     _id: tempId,
                     userId: { username: currentUsername },
                     title: data.title,
                     description: data.description,
-                    imageUrl: data.imageUrl,
+                    imageUrls: '',
                     createdAt: new Date().getTime(),
                     likeCount: 0,
                     isLikedByCurrentUser: false
@@ -95,23 +97,22 @@ const Forum = ({ type }: ForumProps) => {
                 setPosts(prevPosts => [tempPost, ...prevPosts]);
                 setShowPostForm(false);
 
-                const createdPostRaw = await PostApiService.createPost(data);
+                const createdPostRaw: PostProp = await PostApiService.createPost(data);
 
                 const createdPost: PostProp = {
                     _id: createdPostRaw._id,
-                    userId: createdPostRaw.userId,
+                    commentCount: createdPostRaw.commentCount,
+                    userId: { username: currentUsername },
                     title: createdPostRaw.title,
                     description: createdPostRaw.description,
-                    imageUrl: '', // TODO: Replace with new URL
+                    imageUrls: createdPostRaw.imageUrls[0] ? `${SERVER_URL}/uploads/posts/${createdPostRaw.imageUrls}` : '',
+                    isLikedByCurrentUser: createdPostRaw.isLikedByCurrentUser,
                     createdAt: createdPostRaw.createdAt || new Date().getTime(),
                     likeCount: 0
                 };
 
-                setPosts(prevPosts =>
-                    prevPosts.map(post =>
-                        post._id === tempId ? createdPost : post
-                    )
-                );
+                setPosts(prevPosts => [createdPost, ...prevPosts.slice(1)]);
+
                 setLikes(prevLikes => {
                     const newLikes = { ...prevLikes, [createdPost._id]: { isLiked: false, count: 0 } };
                     delete newLikes[tempId];
@@ -210,7 +211,7 @@ const Forum = ({ type }: ForumProps) => {
                         post={editingPost ? {
                             title: editingPost.title,
                             description: editingPost.description,
-                            imageUrl: editingPost.imageUrl
+                            imageUrls: editingPost.imageUrls
                         } : undefined}
                     />
                 </div>
@@ -225,7 +226,7 @@ const Forum = ({ type }: ForumProps) => {
                             key={post._id}
                             username={post.userId.username}
                             title={post.title}
-                            imageUrl={post.imageUrl}
+                            imageUrls={post.imageUrls}
                             description={post.description}
                             currentUsername={currentUsername}
                             postId={post._id}

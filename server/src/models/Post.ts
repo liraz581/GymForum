@@ -4,7 +4,7 @@ export interface IPost extends Document {
     userId: mongoose.Types.ObjectId;
     title: string;
     description: string;
-    imageUrls?: string[];
+    imageUrls: string[];
     createdAt: Date;
 }
 

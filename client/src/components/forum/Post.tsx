@@ -6,7 +6,7 @@ import CommentProp from "../../props/CommentProp";
 interface PostProps {
     username: string;
     title: string;
-    imageUrl: string;
+    imageUrls: string;
     description: string;
     timestamp: number;
     currentUsername: string;
@@ -24,7 +24,7 @@ interface PostProps {
 const Post: React.FC<PostProps> = ({
                                        username,
                                        title,
-                                       imageUrl,
+                                       imageUrls,
                                        description,
                                        timestamp,
                                        currentUsername,
@@ -128,10 +128,10 @@ const Post: React.FC<PostProps> = ({
             </div>
 
             <div className="p-4 pt-0">
-                {false /* TODO: fix */ && imageUrl && (
+                {imageUrls && (
                     <img
-                        src={imageUrl}
-                        alt={title}
+                        src={imageUrls}
+                        alt={''}
                         className="w-full h-auto max-h-96 object-cover rounded-md mb-4"
                     />
                 )}
