@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import CommentProp from "../../props/CommentProp";
+import {comment} from "postcss";
 
 interface Comment {
     id: string;
@@ -14,6 +15,7 @@ interface CommentsProps {
     currentUsername: string;
     onAddComment: (content: string) => void;
     commentCount: number;
+    userImage: string;
 }
 
 const Comments: React.FC<CommentsProps> = ({
@@ -21,6 +23,7 @@ const Comments: React.FC<CommentsProps> = ({
                                                comments,
                                                currentUsername,
                                                onAddComment,
+                                               userImage
                                            }) => {
     const [newComment, setNewComment] = useState('');
 
@@ -42,7 +45,7 @@ const Comments: React.FC<CommentsProps> = ({
                         <li key={comment.id} className="flex items-start gap-2">
                             <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center">
                                 <img
-                                    src={'https://cdn.pfps.gg/pfps/4835-spongebob-28.png'}
+                                    src={comment.imageUrl}
                                     alt={"pfp"}
                                     className="w-full h-full object-cover"
                                 />

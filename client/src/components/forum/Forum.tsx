@@ -25,6 +25,7 @@ const Forum = ({ type }: ForumProps) => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [likes, setLikes] = useState<LikeState>({});
+    const [userImage, setUserImage] = useState<string>('');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -32,6 +33,7 @@ const Forum = ({ type }: ForumProps) => {
             try {
                 const userData = await UserApiService.getCurrentUser();
                 setCurrentUsername(userData.username);
+                setUserImage(userData.imageUrl);
 
                 const postsData = await PostApiService.getPosts();
                 setPosts(postsData);
@@ -238,6 +240,8 @@ const Forum = ({ type }: ForumProps) => {
                             onDelete={() => handleDelete(post._id)}
                             onLike={() => handleLike(post._id)}
                             onUnlike={() => handleUnlike(post._id)}
+                            userImage={userImage}
+                            posterImage={post.posterImage}
                         />
                     ))}
                 </div>

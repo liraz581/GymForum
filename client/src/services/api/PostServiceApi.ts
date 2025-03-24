@@ -62,7 +62,8 @@ export class PostApiService {
             post.createdAt,
             post.likeCount,
             post.isLikedByCurrentUser,
-            post.commentCount
+            post.commentCount,
+            (post.posterImage ? `${SERVER_URL}/uploads/users/${post.posterImage}` : ''),
         ));
     }
 

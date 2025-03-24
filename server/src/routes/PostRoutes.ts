@@ -4,10 +4,10 @@ import {PostsDAL} from "../DAL/PostsDAL";
 import Post from '../models/Post';
 import Like from "../models/Like";
 import Comment from '../models/Comment';
-import multer from 'multer';
 import sharp from 'sharp';
 import path from 'path';
 import { promises as fs } from 'fs';
+import upload from "../middleware/Multer";
 
 const router = Router();
 
@@ -21,20 +21,6 @@ const postImagesDirectory = path.join(__dirname, '../uploads/posts');
         console.error('Failed to create post images directory:', error);
     }
 })();
-
-const storage = multer.memoryStorage();
-const upload = multer({
-    storage,
-    fileFilter: (req, file, callback) => {
-        const filetypes = /jpeg|jpg|png/;
-        const mimetype = filetypes.test(file.mimetype);
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-        if (mimetype && extname) {
-            return callback(null, true);
-        }
-        callback(new Error("Only .png, .jpg, and .jpeg formats allowed!"));
-    }
-});
 
 interface AuthenticatedRequest extends express.Request {
     user: { id: string };
@@ -104,7 +90,6 @@ const getPostById: RequestHandler = async (req, res) => {
 
 const updatePost: RequestHandler = async (req, res) => {
     try {
-        console.log(req.body);
         const { title, description } = req.body;
 
         if (!title || !description) {
@@ -141,8 +126,6 @@ const updatePost: RequestHandler = async (req, res) => {
         if (req.file) {
             post.imageUrls[0] = imageUrl;
         }
-
-        console.log(post);
 
         await post.save();
         res.json(post);

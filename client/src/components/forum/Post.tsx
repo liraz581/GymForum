@@ -19,6 +19,8 @@ interface PostProps {
     onDelete?: () => void;
     onLike?: () => Promise<void>;
     onUnlike?: () => Promise<void>;
+    userImage?: string;
+    posterImage?: string;
 }
 
 const Post: React.FC<PostProps> = ({
@@ -37,6 +39,8 @@ const Post: React.FC<PostProps> = ({
                                        onDelete,
                                        onLike,
                                        onUnlike,
+                                       userImage,
+                                       posterImage
                                    }) => {
     const [isLiked, setIsLiked] = useState(isLikedByCurrentUser);
     const [localLikeCount, setLocalLikeCount] = useState(likeCount);
@@ -86,7 +90,7 @@ const Post: React.FC<PostProps> = ({
     };
 
     const handleAddComment = async (text: string) => {
-        const tempComment = new CommentProp(Date.now().toString(), currentUsername, text, Date.now());
+        const tempComment = new CommentProp(Date.now().toString(), currentUsername, text, Date.now(), userImage || '');
         setLocalComments(prev => [...prev, tempComment]);
         setLocalCommentCount(prev => prev + 1);
 
@@ -110,7 +114,7 @@ const Post: React.FC<PostProps> = ({
             <div className="p-4 flex items-start gap-4">
                 <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
                     <img
-                        src={'https://cdn.pfps.gg/pfps/4835-spongebob-28.png'}
+                        src={posterImage}
                         alt={''}
                         className="w-full h-full object-cover"
                     />
@@ -149,7 +153,7 @@ const Post: React.FC<PostProps> = ({
                 </button>
                 <button onClick={handleCommentsToggle} className="flex items-center gap-1 text-gray-600 hover:text-gray-800">
                     <span className="text-lg">💬</span>
-                    <span>{localCommentCount}</span> {/* TODO: Reaplce with comment count in poas */}
+                    <span>{localCommentCount}</span>
                 </button>
                 {username === currentUsername && onEdit && (
                     <>
@@ -178,6 +182,7 @@ const Post: React.FC<PostProps> = ({
                     currentUsername={currentUsername}
                     onAddComment={handleAddComment}
                     commentCount={commentCount}
+                    userImage={userImage || ''}
                 />
             )}
         </div>

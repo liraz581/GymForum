@@ -8,6 +8,7 @@ class PostProp {
     likeCount?: number;
     isLikedByCurrentUser?: boolean;
     commentCount?: number;
+    posterImage?: string;
 
     constructor(
         id: string,
@@ -19,6 +20,7 @@ class PostProp {
         likeCount?: number,
         isLikedByCurrentUser?: boolean,
         commentCount?: number,
+        posterImage?: string
     ) {
         this._id = id
         this.userId = {username}
@@ -29,6 +31,7 @@ class PostProp {
         this.likeCount = likeCount;
         this.isLikedByCurrentUser = isLikedByCurrentUser;
         this.commentCount = commentCount;
+        this.posterImage = posterImage;
     }
 }
 
