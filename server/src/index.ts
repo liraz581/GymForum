@@ -1,6 +1,8 @@
 import express, { Express, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
+import https from "https"
+import fs from "fs";
 
 import authRoutes from './routes/Auth';
 import userRoutes from './routes/UserRoutes';
@@ -38,9 +40,19 @@ app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/likes', likeRoutes);
 app.use('/api', commentsRoutes);
-s
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
+} else {
+    const prop = {
+        key: fs.readFileSync(path.join(__dirname, 'key.pem')),
+        cert: fs.readFileSync(path.join(__dirname, 'cert.pem'))
+    }
+    https.createServer(prop, app).listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
+}
