@@ -33,7 +33,7 @@ app.get('/protected', authenticateToken, (req: Request, res: Response) => {
     res.json({ message: 'Protected route accessed successfully', user: req.user });
 });
 
-const MONGO_URI = /*process.env.MONGO_URI ? process.env.MONGO_URI :*/ 'mongodb://localhost:27017/gymforum';
+const MONGO_URI = process.env.MONGO_URI ? process.env.MONGO_URI : 'mongodb://localhost:27017/gymforum';
 
 mongoose.connect(MONGO_URI)
     .then(() => console.log('Connected to MongoDB'))
