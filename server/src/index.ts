@@ -12,13 +12,12 @@ import commentsRoutes from "./routes/CommentsRoutes";
 
 import { authenticateToken } from './middleware/AuthMiddleware';
 import path from "path";
-import { fileURLToPath } from 'url';
 
 const app: Express = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors({
-    origin: 'http://10.10.246.143:80',
+    origin: `https://10.10.246.143:${PORT}`,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
