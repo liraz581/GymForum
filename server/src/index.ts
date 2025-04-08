@@ -13,6 +13,9 @@ import commentsRoutes from "./routes/CommentsRoutes";
 import { authenticateToken } from './middleware/AuthMiddleware';
 import path from "path";
 
+import { setupSwaggerDocs } from './swagger';
+import './swaggerDocs';
+
 const app: Express = express();
 const PORT = process.env.PORT || 5000;
 
@@ -45,12 +48,16 @@ app.use('/api', commentsRoutes);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-app.use(express.static(path.join(__dirname, '../front/')));
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../front/index.html'));
-});
+if (process.env.NODE_ENV !== 'production') {
+    setupSwaggerDocs(app);
+}
 
 if (process.env.NODE_ENV !== 'production') {
+    app.use(express.static(path.join(__dirname, '../front/')));
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, '../front/index.html'));
+    });
+
     app.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
     });
