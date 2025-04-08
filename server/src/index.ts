@@ -16,8 +16,10 @@ import path from "path";
 const app: Express = express();
 const PORT = process.env.PORT || 5000;
 
+const allowedOrigin = (process.env.NODE_ENV !== 'production') ? 'http://localhost:3000' : `https://10.10.246.143:${PORT}`;
+
 app.use(cors({
-    origin: `https://10.10.246.143:${PORT}`,
+    origin: allowedOrigin,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -58,6 +60,6 @@ if (process.env.NODE_ENV !== 'production') {
         cert: fs.readFileSync(path.join(__dirname, 'cert.pem'))
     }
     https.createServer(prop, app).listen(PORT, () => {
-        console.log(`Server is running on port ${PORT}`);
+        console.log(`Server is running on secure port ${PORT}`);
     });
 }
