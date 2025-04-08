@@ -93,7 +93,8 @@ const Forum = ({ type }: ForumProps) => {
                     imageUrls: '',
                     createdAt: new Date().getTime(),
                     likeCount: 0,
-                    isLikedByCurrentUser: false
+                    isLikedByCurrentUser: false,
+                    posterImage: userImage
                 };
 
                 setPosts(prevPosts => [tempPost, ...prevPosts]);
@@ -110,7 +111,8 @@ const Forum = ({ type }: ForumProps) => {
                     imageUrls: createdPostRaw.imageUrls[0] ? `${SERVER_URL}/uploads/posts/${createdPostRaw.imageUrls}` : '',
                     isLikedByCurrentUser: createdPostRaw.isLikedByCurrentUser,
                     createdAt: createdPostRaw.createdAt || new Date().getTime(),
-                    likeCount: 0
+                    likeCount: 0,
+                    posterImage: userImage
                 };
 
                 setPosts(prevPosts => [createdPost, ...prevPosts.slice(1)]);
@@ -189,6 +191,7 @@ const Forum = ({ type }: ForumProps) => {
     const handleEdit = (post: PostProp) => {
         setEditingPost(post);
         setShowPostForm(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     return (

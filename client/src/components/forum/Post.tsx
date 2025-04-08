@@ -101,7 +101,13 @@ const Post: React.FC<PostProps> = ({
             const createdComment = await CommentApiService.addComment(postId, text, Date.now());
             setLocalComments(prev =>
                 prev.map(c => {
-                    return c.id === tempComment.id ? createdComment : c;
+                    if (c.id !== tempComment.id) return c;
+
+                    return {
+                        ...createdComment,
+                        imageUrl: tempComment.imageUrl,
+                        username: tempComment.username
+                    };
                 })
             );
         } catch (error) {
