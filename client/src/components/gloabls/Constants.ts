@@ -5,4 +5,4 @@ export const ROUTES = {
     PROFILE: '/profile'
 } as const;
 
-export const SERVER_URL: string = 'http://localhost:5000';
+export const SERVER_URL: string =  process.env.REACT_APP_SERVER_URL || 'http://localhost:5000';
