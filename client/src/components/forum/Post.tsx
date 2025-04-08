@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import Comments from './Comments';
 import {CommentApiService} from "../../services/api/CommentsServiceApi";
 import CommentProp from "../../props/CommentProp";
+import {SERVER_URL} from "../gloabls/Constants";
 
 interface PostProps {
     username: string;
@@ -47,6 +48,8 @@ const Post: React.FC<PostProps> = ({
     const [localComments, setLocalComments] = useState<CommentProp[]>([]);
     const [showComments, setShowComments] = useState(false);
     const [localCommentCount, setLocalCommentCount] = useState(commentCount);
+    const [factCheckResult, setFactCheckResult] = useState<string | null>(null);
+    const [isFactChecking, setIsFactChecking] = useState(false);
 
     const fetchComments = async () => {
         try {
@@ -108,6 +111,28 @@ const Post: React.FC<PostProps> = ({
         }
     };
 
+    const handleFactCheck = async () => {
+        setIsFactChecking(true);
+        setFactCheckResult(null);
+        try {
+            const response = await fetch(`${SERVER_URL}/ai/factcheck`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: `${title}. ${description}` }),
+            });
+            const data = await response.json();
+            setFactCheckResult(data.result || 'No response from AI.');
+        } catch (error) {
+            console.error('Fact-checking failed:', error);
+            setFactCheckResult('AI failed to process the request.');
+        } finally {
+            setIsFactChecking(false);
+        }
+    };
+
     return (
         <div className="max-w-md mx-auto bg-white shadow-md rounded-lg overflow-hidden mb-6">
 
@@ -155,6 +180,14 @@ const Post: React.FC<PostProps> = ({
                     <span className="text-lg">💬</span>
                     <span>{localCommentCount}</span>
                 </button>
+                <button
+                    onClick={handleFactCheck}
+                    className="flex items-center gap-1 text-gray-600 hover:text-blue-600"
+                    disabled={isFactChecking}
+                >
+                    <span className="text-lg">🧠</span>
+                    <span>{isFactChecking ? 'Checking...' : 'Fact-check'}</span>
+                </button>
                 {username === currentUsername && onEdit && (
                     <>
                         <button
@@ -174,7 +207,12 @@ const Post: React.FC<PostProps> = ({
                     </>
                 )}
             </div>
-
+            {factCheckResult && (
+                <div className="px-4 pb-4 pt-2 text-sm text-gray-700 bg-gray-50 border-t border-gray-200">
+                    <strong>AI Fact-check:</strong>
+                    <p className="mt-1 whitespace-pre-wrap">{factCheckResult}</p>
+                </div>
+            )}
             {showComments && (
                 <Comments
                     postId={postId}
