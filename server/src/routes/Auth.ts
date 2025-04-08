@@ -40,7 +40,7 @@ const register: RequestHandler = async (req, res) => {
             expiresIn: '1h'
         });
 
-        const { password: _, ...userWithoutPassword } = user;
+        const { password: _, ...userWithoutPassword } = user.toObject();
         res.status(201).json({
             message: 'User created successfully',
             token,
