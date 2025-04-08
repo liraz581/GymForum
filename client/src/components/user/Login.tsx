@@ -74,6 +74,7 @@ const Login = () => {
                         Sign in with Google
                     </button>
                     <button
+                        disabled={true}
                         onClick={handleFacebookLogin}
                         className="flex-1 py-2 px-4 bg-blue-800 text-white rounded-md flex items-center justify-center font-semibold text-sm tracking-wide"
                     >
