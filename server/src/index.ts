@@ -12,9 +12,10 @@ import commentsRoutes from "./routes/CommentsRoutes";
 
 import { authenticateToken } from './middleware/AuthMiddleware';
 import path from "path";
+import { fileURLToPath } from 'url';
 
 const app: Express = express();
-const PORT = process.env.PORT ? process.env.PORT : 5000;
+const PORT = process.env.PORT || 5000;
 
 app.use(cors({
     origin: 'http://10.10.246.143:80',
@@ -42,6 +43,11 @@ app.use('/likes', likeRoutes);
 app.use('/api', commentsRoutes);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+app.use(express.static(path.join(__dirname, '../front/')));
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../front/index.html'));
+});
 
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
