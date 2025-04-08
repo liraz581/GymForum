@@ -1,15 +1,10 @@
 import UserProp from "../../props/UserProp";
 import {SERVER_URL} from "../../components/gloabls/Constants";
+import {authService} from "../Auth";
 
 export const UserApiService = {
     async getCurrentUser(): Promise<UserProp> {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${SERVER_URL}/auth/me`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
+        const response = await authService.fetchWithAuth(`${SERVER_URL}/auth/me`);
 
         if (!response.ok) {
             throw new Error('Failed to fetch user data');

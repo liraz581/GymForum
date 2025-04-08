@@ -23,15 +23,11 @@ export const authService = {
                 throw new Error(error.message || 'Login failed');
             }
 
-            const { token } = await response.json();
+            const { token, refreshToken } = await response.json();
             localStorage.setItem('token', token);
+            localStorage.setItem('refreshToken', refreshToken);
 
-            const userResponse = await fetch(`${SERVER_URL}/auth/me`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+            const userResponse = await authService.fetchWithAuth(`${SERVER_URL}/auth/me`);
 
             if (!userResponse.ok) {
                 throw new Error('Failed to fetch user data');
@@ -72,6 +68,7 @@ export const authService = {
             const data = await response.json();
 
             localStorage.setItem('token', data.token);
+            localStorage.setItem('refreshToken', data.refreshToken);
 
             return new UserProp(
                 data.user.id,
@@ -82,6 +79,55 @@ export const authService = {
         } catch (error) {
             throw error;
         }
+    },
+
+    async refreshAccessToken(): Promise<string | null> {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (!refreshToken) return null;
+
+        try {
+            const response = await fetch(`${SERVER_URL}/auth/refresh`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refreshToken }),
+            });
+
+            if (!response.ok) return null;
+
+            const data = await response.json();
+            localStorage.setItem('token', data.token);
+            return data.token;
+        } catch (err) {
+            console.error('Failed to refresh token', err);
+            return null;
+        }
+    },
+
+    async fetchWithAuth(url: string, options: RequestInit = {}) {
+        let token = localStorage.getItem('token');
+
+        let res = await fetch(url, {
+            ...options,
+            headers: {
+                ...(options.headers || {}),
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (res.status !== 401) return res;
+
+        const newToken = await authService.refreshAccessToken();
+        if (!newToken) throw new Error('Session expired');
+
+        return fetch(url, {
+            ...options,
+            headers: {
+                ...(options.headers || {}),
+                Authorization: `Bearer ${newToken}`,
+                'Content-Type': 'application/json',
+            },
+        });
     },
 
     async loginWithGoogle(): Promise<UserProp> {
@@ -96,5 +142,6 @@ export const authService = {
 
     logout(): void {
         localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
     }
 };
