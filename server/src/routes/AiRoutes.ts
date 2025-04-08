@@ -39,7 +39,6 @@ const generateAiResponse: RequestHandler = async (req, res) => {
         });
 
         const result = response.choices[0].message.content;
-        console.log('AI response:', result);
 
         if (!result) {
             throw new Error(`OpenAI response is empty`);
