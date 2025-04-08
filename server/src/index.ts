@@ -9,6 +9,7 @@ import userRoutes from './routes/UserRoutes';
 import postRoutes from './routes/PostRoutes';
 import likeRoutes from "./routes/LikeRoutes";
 import commentsRoutes from "./routes/CommentsRoutes";
+import aiRoutes from "./routes/AiRoutes";
 
 import { authenticateToken } from './middleware/AuthMiddleware';
 import path from "path";
@@ -32,7 +33,7 @@ app.get('/protected', authenticateToken, (req: Request, res: Response) => {
     res.json({ message: 'Protected route accessed successfully', user: req.user });
 });
 
-const MONGO_URI = process.env.MONGO_URI ? process.env.MONGO_URI : 'mongodb://localhost:27017/gymforum';
+const MONGO_URI = /*process.env.MONGO_URI ? process.env.MONGO_URI :*/ 'mongodb://localhost:27017/gymforum';
 
 mongoose.connect(MONGO_URI)
     .then(() => console.log('Connected to MongoDB'))
@@ -45,6 +46,7 @@ app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/likes', likeRoutes);
 app.use('/api', commentsRoutes);
+app.use('/ai', aiRoutes);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -62,6 +64,10 @@ if (process.env.NODE_ENV !== 'production') {
         console.log(`Server is running on port ${PORT}`);
     });
 } else {
+    app.use(express.static(path.join(__dirname, '../front/')));
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, '../front/index.html'));
+    });
     const prop = {
         key: fs.readFileSync(path.join(__dirname, 'key.pem')),
         cert: fs.readFileSync(path.join(__dirname, 'cert.pem'))
