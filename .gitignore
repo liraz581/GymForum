@@ -5,6 +5,7 @@ npm-debug.log
 # Build output
 dist/
 build/
+uploads/
 
 # Environment variables
 .env
