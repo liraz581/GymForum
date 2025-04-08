@@ -14,6 +14,9 @@ import aiRoutes from "./routes/AiRoutes";
 import { authenticateToken } from './middleware/AuthMiddleware';
 import path from "path";
 
+import { setupSwaggerDocs } from './swagger';
+import './swaggerDocs';
+
 const app: Express = express();
 const PORT = process.env.PORT || 5000;
 
@@ -30,7 +33,7 @@ app.get('/protected', authenticateToken, (req: Request, res: Response) => {
     res.json({ message: 'Protected route accessed successfully', user: req.user });
 });
 
-const MONGO_URI = /*process.env.MONGO_URI ? process.env.MONGO_URI :*/ 'mongodb://localhost:27017/gymforum';
+const MONGO_URI = process.env.MONGO_URI ? process.env.MONGO_URI : 'mongodb://localhost:27017/gymforum';
 
 mongoose.connect(MONGO_URI)
     .then(() => console.log('Connected to MongoDB'))
@@ -47,8 +50,16 @@ app.use('/ai', aiRoutes);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+if (process.env.NODE_ENV !== 'production') {
+    setupSwaggerDocs(app);
+}
 
 if (process.env.NODE_ENV !== 'production') {
+    app.use(express.static(path.join(__dirname, '../front/')));
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, '../front/index.html'));
+    });
+
     app.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
     });
